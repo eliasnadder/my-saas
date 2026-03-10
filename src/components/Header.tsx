@@ -1,7 +1,21 @@
-import { Search, Bell, Menu } from 'lucide-react';
-import { ViewType } from '../App';
+import { Search, Bell, Menu, Sun, Moon, Monitor } from 'lucide-react';
+import { ViewType, ThemeMode } from '../App';
+import { useState, useRef, useEffect } from 'react';
 
-export default function Header({ currentView, onMenuClick }: { currentView: ViewType, onMenuClick: () => void }) {
+export default function Header({ currentView, onMenuClick, theme, setTheme }: { currentView: ViewType, onMenuClick: () => void, theme: ThemeMode, setTheme: (t: ThemeMode) => void }) {
+  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
+  const themeMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (themeMenuRef.current && !themeMenuRef.current.contains(event.target as Node)) {
+        setIsThemeMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const getTitle = () => {
     switch (currentView) {
       case 'overview': return 'Dashboard Overview';
@@ -32,13 +46,37 @@ export default function Header({ currentView, onMenuClick }: { currentView: View
         </div>
       </div>
 
-      <div className="flex items-center gap-4 ml-4">
+      <div className="flex items-center gap-2 sm:gap-4 ml-auto">
+        <div className="relative" ref={themeMenuRef}>
+          <button 
+            onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)}
+            className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+            title="Toggle theme"
+          >
+            {theme === 'light' ? <Sun size={20} /> : theme === 'dark' ? <Moon size={20} /> : <Monitor size={20} />}
+          </button>
+          
+          {isThemeMenuOpen && (
+            <div className="absolute right-0 mt-2 w-36 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 py-1 z-50 overflow-hidden">
+              <button onClick={() => { setTheme('light'); setIsThemeMenuOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${theme === 'light' ? 'text-blue-600 bg-blue-50 dark:bg-blue-500/10 font-medium' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
+                <Sun size={16} /> Light
+              </button>
+              <button onClick={() => { setTheme('dark'); setIsThemeMenuOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${theme === 'dark' ? 'text-blue-600 bg-blue-50 dark:bg-blue-500/10 font-medium' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
+                <Moon size={16} /> Dark
+              </button>
+              <button onClick={() => { setTheme('system'); setIsThemeMenuOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${theme === 'system' ? 'text-blue-600 bg-blue-50 dark:bg-blue-500/10 font-medium' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
+                <Monitor size={16} /> System
+              </button>
+            </div>
+          )}
+        </div>
+
         <button className="relative p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
           <Bell size={20} />
           <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
         </button>
         
-        <div className="h-8 w-px bg-slate-200 dark:border-slate-700 mx-1"></div>
+        <div className="h-8 w-px bg-slate-200 dark:border-slate-700 mx-1 hidden sm:block"></div>
         
         <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
           <div className="text-right hidden sm:block">
